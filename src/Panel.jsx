@@ -107,6 +107,8 @@ function Tablero({ clave, salir }) {
       sinResponder: datos.filter((r) => r.sinResponder || r.dijoNo),
       ganadores: datos.filter((r) => r.gano).sort((a, b) => (a.gano_en || '').localeCompare(b.gano_en || '')),
       excluidos: datos.filter((r) => r.excluido),
+      comidas: datos.filter((r) => r.asiste && ['Vegetariano/a', 'Celíaco/a'].includes(r.preferencia)),
+      alergias: datos.filter((r) => r.asiste && (r.alergia || '').trim()),
     }
   }, [datos])
 
@@ -195,6 +197,8 @@ function Tablero({ clave, salir }) {
         hoja(listas.ganadores.map((r, i) => ({ Orden: i + 1, ...persona(r), 'Hora del sorteo': hora(r.gano_en) })), [8, ...anchosPersona, 15]),
         'Ganadores'
       )
+      XLSX.utils.book_append_sheet(wb, hoja(listas.comidas.map(persona), anchosPersona), 'Comidas especiales')
+      XLSX.utils.book_append_sheet(wb, hoja(listas.alergias.map(persona), anchosPersona), 'Alergias')
       XLSX.utils.book_append_sheet(wb, hoja(datos.map(persona), anchosPersona), 'Todos')
       const f = new Date()
       const sello = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}_${String(f.getHours()).padStart(2, '0')}${String(f.getMinutes()).padStart(2, '0')}`
@@ -226,13 +230,16 @@ function Tablero({ clave, salir }) {
   const pestanas = [
     ['asistieron', `Asistieron (${listas.asistieron.length})`],
     ['noAsistieron', `No asistieron (${listas.noAsistieron.length})`],
-    ['sinResponder', `No vienen / sin responder (${listas.sinResponder.length})`],
+    ['sinResponder', `No viene / No confirmaron (${listas.sinResponder.length})`],
     ['ganadores', `Ganadores (${listas.ganadores.length})`],
     ['excluidos', `Excluidos (${listas.excluidos.length})`],
+    ['comidas', `Comidas (${listas.comidas.length})`],
+    ['alergias', `Alergias (${listas.alergias.length})`],
   ]
 
-  const conComida = vista === 'asistieron' || vista === 'noAsistieron'
-  const conEstado = vista === 'sinResponder' || vista === 'excluidos'
+  const conComida = ['asistieron', 'noAsistieron', 'comidas'].includes(vista)
+  const conAlergia = ['asistieron', 'noAsistieron', 'alergias'].includes(vista)
+  const conEstado = ['sinResponder', 'excluidos', 'comidas', 'alergias'].includes(vista)
   const estado = (r) =>
     r.llego ? 'Llegó' : r.confirmo ? 'Confirmó' : r.dijoNo ? 'No asiste' : 'Sin responder'
 
@@ -296,7 +303,7 @@ function Tablero({ clave, salir }) {
                 <th>N°</th>
                 {vista === 'asistieron' && <th>Llegada</th>}
                 {conComida && <th>Comida</th>}
-                {conComida && <th>Alergia</th>}
+                {conAlergia && <th>Alergia</th>}
                 {conEstado && <th>Estado</th>}
                 {vista === 'asistieron' && <th></th>}
               </tr>
@@ -316,7 +323,7 @@ function Tablero({ clave, salir }) {
                   <td className="dorado">{r.numero ? formatoNumero(r.numero) : ''}</td>
                   {vista === 'asistieron' && <td>{hora(r.llegada)}</td>}
                   {conComida && <td>{r.preferencia || ''}</td>}
-                  {conComida && <td>{r.alergia || ''}</td>}
+                  {conAlergia && <td>{r.alergia || ''}</td>}
                   {conEstado && <td>{estado(r)}</td>}
                   {vista === 'asistieron' && (
                     <td>
