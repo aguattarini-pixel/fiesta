@@ -220,10 +220,7 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 .flecha.abierta { transform: rotate(180deg); } }
 /* ---------- Ajustes del sorteo: ruleta fija y números parejos ---------- */
 .reel { box-sizing: content-box; }
-.strip div {
-  font-family: var(--sans); font-weight: 300; font-size: calc(var(--alto) * 0.62);
-  font-variant-numeric: lining-nums tabular-nums;
-}
+.strip div { padding-bottom: calc(var(--alto) * 0.14); box-sizing: border-box; }
 .sorteo-pantalla { height: 100vh; min-height: 0; overflow: hidden; padding-bottom: 24vh; }
 .lista-ganadores {
   position: absolute; left: 50%; bottom: 2vh; transform: translateX(-50%);
