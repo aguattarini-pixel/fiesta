@@ -340,7 +340,7 @@ function Resultado({ resultado, cfg }) {
         {listo && (
           <motion.div key="info" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <p className="texto-suave chico">
-              Guardá este número: lo vas a necesitar en el sorteo. También te lo enviamos por correo.
+              Guardá este número: lo vas a necesitar en el sorteo. Descargá tu invitación para tenerlo siempre a mano.
             </p>
             <p className="fecha">{cfg.fecha} · {cfg.hora}</p>
             <p className="lugar">{cfg.lugar}</p>
