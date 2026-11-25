@@ -218,3 +218,14 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 @media (prefers-reduced-motion: reduce) { .luz.titila { animation: none; }
 .flecha { color: var(--dorado); font-size: 18px; transition: transform 0.2s; }
 .flecha.abierta { transform: rotate(180deg); } }
+/* ---------- Ajustes del sorteo: ruleta fija y números parejos ---------- */
+.reel { box-sizing: content-box; }
+.strip div {
+  font-family: var(--sans); font-weight: 300; font-size: calc(var(--alto) * 0.62);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.sorteo-pantalla { height: 100vh; min-height: 0; overflow: hidden; padding-bottom: 24vh; }
+.lista-ganadores {
+  position: absolute; left: 50%; bottom: 2vh; transform: translateX(-50%);
+  width: min(640px, 90%); max-height: 20vh; overflow-y: auto; margin: 0;
+}
