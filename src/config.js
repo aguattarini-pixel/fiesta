@@ -14,4 +14,5 @@ export const CONFIG_DEFECTO = {
   lugar: 'ALTO BOTÁNICO',
   direccion: 'Chancay 600, Córdoba',
   inscripcion_abierta: 'si',
+  cierre_inscripcion: '2026-12-04 23:59:59',
 }
