@@ -1,55 +1,66 @@
 import { formatoNumero } from './supabase.js'
 
-// Cuánto se sube el diseño del flyer para dejar más lugar al número abajo
-const SUBIR = 90
+// Arma la invitación personalizada: el flyer completo y, debajo,
+// una franja oscura con el número de sorteo en dorado.
+// Funciona con cualquier tamaño de flyer (se reemplaza public/flyer.png).
 
-// Arma la invitación personalizada: el flyer de Canva con el número abajo
+const FONDO_FRANJA = '#151a22'
+const DORADO = '#E9C46A'
+
 export async function crearInvitacion(numero) {
+  const img = await new Promise((ok, mal) => {
+    const i = new Image()
+    i.onload = () => ok(i)
+    i.onerror = mal
+    i.src = '/flyer.png?v=2'
+  })
+
+  const W = img.width
+  const franja = Math.round(W * 0.3)
+  const H = img.height + franja
+
   try {
     await Promise.all([
-      document.fonts.load('175px "Italiana"'),
-      document.fonts.load('500 30px "Montserrat"'),
+      document.fonts.load(`${Math.round(W * 0.15)}px "Italiana"`),
+      document.fonts.load(`500 ${Math.round(W * 0.026)}px "Montserrat"`),
     ])
   } catch {
     /* si no cargan las fuentes, se usa una parecida */
   }
 
-  const img = await new Promise((ok, mal) => {
-    const i = new Image()
-    i.onload = () => ok(i)
-    i.onerror = mal
-    i.src = '/flyer.png'
-  })
-
-  const W = img.width // 1080
-  const H = img.height // 1920
   const c = document.createElement('canvas')
   c.width = W
   c.height = H
   const ctx = c.getContext('2d')
 
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, W, H)
-  // Todo el diseño un poco más arriba
-  ctx.drawImage(img, 0, SUBIR, W, H - SUBIR, 0, 0, W, H - SUBIR)
-  // La franja de arriba (solo puntitos) se pone abajo para completar
-  ctx.drawImage(img, 0, 0, W, SUBIR, 0, H - SUBIR, W, SUBIR)
+  // Flyer arriba
+  ctx.drawImage(img, 0, 0)
+
+  // Franja de abajo
+  const y0 = img.height
+  ctx.fillStyle = FONDO_FRANJA
+  ctx.fillRect(0, y0, W, franja)
+
+  // Línea dorada de separación
+  ctx.fillStyle = DORADO
+  ctx.fillRect(0, y0, W, Math.max(3, Math.round(W * 0.004)))
 
   const x = W / 2
 
   // Título chico
   ctx.fillStyle = '#ffffff'
-  ctx.font = '500 30px Montserrat, sans-serif'
-  dibujarCentrado(ctx, 'TU NÚMERO DE SORTEO', x, 1695, 8)
+  ctx.font = `500 ${Math.round(W * 0.026)}px Montserrat, sans-serif`
+  dibujarCentrado(ctx, 'TU NÚMERO DE SORTEO', x, y0 + franja * 0.27, Math.round(W * 0.008))
 
   // Número grande, dorado y con brillo
-  ctx.font = '175px Italiana, serif'
-  ctx.fillStyle = '#E9C46A'
+  const yNum = y0 + franja * 0.84
+  ctx.font = `${Math.round(W * 0.15)}px Italiana, serif`
+  ctx.fillStyle = DORADO
   ctx.shadowColor = 'rgba(233, 196, 106, 0.55)'
-  ctx.shadowBlur = 36
-  dibujarCentrado(ctx, formatoNumero(numero), x, 1862, 22)
+  ctx.shadowBlur = Math.round(W * 0.03)
+  dibujarCentrado(ctx, formatoNumero(numero), x, yNum, Math.round(W * 0.02))
   ctx.shadowBlur = 0
-  dibujarCentrado(ctx, formatoNumero(numero), x, 1862, 22)
+  dibujarCentrado(ctx, formatoNumero(numero), x, yNum, Math.round(W * 0.02))
 
   return new Promise((ok) => c.toBlob(ok, 'image/png'))
 }
@@ -66,7 +77,7 @@ export async function descargarInvitacion(numero) {
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
 
-// Texto con espacio entre letras, centrado según lo que realmente se ve (no el ancho de la letra)
+// Texto con espacio entre letras, centrado según lo que realmente se ve
 function dibujarCentrado(ctx, texto, x, y, espacio) {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
