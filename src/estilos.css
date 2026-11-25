@@ -226,3 +226,6 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
   position: absolute; left: 50%; bottom: 2vh; transform: translateX(-50%);
   width: min(640px, 90%); max-height: 20vh; overflow-y: auto; margin: 0;
 }
+/* Lista de ganadores sin barra de desplazamiento */
+.lista-ganadores { overflow: hidden !important; scrollbar-width: none; }
+.lista-ganadores::-webkit-scrollbar { display: none; }
