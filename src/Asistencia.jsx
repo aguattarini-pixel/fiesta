@@ -106,18 +106,28 @@ function Recepcion({ clave, salir }) {
           >
             <p className="bienvenida-hola">{res.ya_estaba ? 'Ya estabas registrado/a' : '¡Qué bueno que viniste!'}</p>
             <p className="bienvenida-nombre">{res.nombre}</p>
-            <p className="texto-suave">Tu número de sorteo</p>
-            <motion.p
-              className="bienvenida-numero"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.25, type: 'spring', stiffness: 140, damping: 12 }}
-            >
-              {formatoNumero(res.numero)}
-            </motion.p>
-            <p className="bienvenida-ok">
-              {res.ya_estaba ? `Llegada registrada a las ${hora(res.llegada)}` : '¡Ya estás participando del sorteo!'}
-            </p>
+            {res.numero ? (
+              <>
+                <p className="texto-suave">Tu número de sorteo</p>
+                <motion.p
+                  className="bienvenida-numero"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.25, type: 'spring', stiffness: 140, damping: 12 }}
+                >
+                  {formatoNumero(res.numero)}
+                </motion.p>
+                <p className="bienvenida-ok">
+                  {res.ya_estaba ? `Llegada registrada a las ${hora(res.llegada)}` : '¡Ya estás participando del sorteo!'}
+                </p>
+              </>
+            ) : (
+              <p className="bienvenida-ok">
+                {res.ya_estaba
+                  ? `Tu llegada ya estaba registrada a las ${hora(res.llegada)}`
+                  : 'Registramos tu llegada. ¡Que disfrutes la fiesta!'}
+              </p>
+            )}
             <p className="texto-suave chico">Tocá la pantalla para continuar</p>
           </motion.div>
         ) : (
