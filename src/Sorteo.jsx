@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { llamar, formatoNumero } from './supabase.js'
 import { RODILLOS_SORTEO } from './config.js'
 import Rodillos from './Rodillos.jsx'
+import { iniciarAudio, tic, frenazo, fanfarria } from './sonidos.js'
 
 // Respaldo local: si se corta internet en la fiesta, el sorteo sigue funcionando
 const K_CLAVE = 'fiesta_clave'
@@ -157,6 +158,7 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
 
   const sortear = useCallback(() => {
     if (girando || !disponibles.length) return
+    iniciarAudio()
     const elegido = disponibles[Math.floor(Math.random() * disponibles.length)]
     setActual(elegido)
     setMostrarGanador(false)
@@ -182,6 +184,7 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
     setGirando(false)
     setMostrarGanador(true)
     setConfeti((c) => c + 1)
+    fanfarria()
     const g = actual
     const nueva = lista.map((p) => (p.numero === g.numero ? { ...p, gano: true } : p))
     setLista(nueva)
@@ -216,6 +219,8 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
           paradas={RODILLOS_SORTEO.paradas}
           vueltas={RODILLOS_SORTEO.vueltas}
           alTerminar={terminar}
+          alFrenar={frenazo}
+          alTic={tic}
           grande
         />
 
@@ -253,30 +258,49 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
       {ganadores.length > 0 && (
         <aside className="lista-ganadores">
           <p className="etiqueta">Ganadores</p>
-          {ganadores.map((g, i) => (
-            <div className="fila-ganador" key={g.numero}>
-              <span>{ganadores.length - i}. {g.nombre}</span>
-              <span className="num">{formatoNumero(g.numero)}</span>
-            </div>
-          ))}
+          <AnimatePresence initial={false}>
+            {ganadores.slice(0, MOSTRAR_GANADORES).map((g, i) => (
+              <motion.div
+                layout
+                className="fila-ganador"
+                key={g.numero}
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1 - i * (0.8 / MOSTRAR_GANADORES), y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span>{ganadores.length - i}. {g.nombre}</span>
+                <span className="num">{formatoNumero(g.numero)}</span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </aside>
       )}
     </main>
   )
 }
 
+// Cuántos ganadores se ven abajo (los más viejos se van difuminando).
+// La lista completa está en el panel y en el Excel.
+const MOSTRAR_GANADORES = 5
+
+// Confeti: cantidad de papelitos y cuánto tardan en caer (segundos)
+const CONFETI_CANTIDAD = 260
+const CONFETI_DURACION_MIN = 4
+const CONFETI_DURACION_EXTRA = 3
+
 const COLORES = ['#E9C46A', '#F4D98B', '#C9A24A', '#FFFFFF']
 
 function Confeti({ disparo }) {
   const piezas = useMemo(
     () =>
-      Array.from({ length: disparo ? 90 : 0 }, (_, i) => ({
+      Array.from({ length: disparo ? CONFETI_CANTIDAD : 0 }, (_, i) => ({
         id: `${disparo}-${i}`,
         x: Math.random() * 100,
         tam: 6 + Math.random() * 8,
         color: COLORES[i % COLORES.length],
-        demora: Math.random() * 0.6,
-        dur: 2.4 + Math.random() * 1.8,
+        demora: Math.random() * 2.5,
+        dur: CONFETI_DURACION_MIN + Math.random() * CONFETI_DURACION_EXTRA,
         giro: (Math.random() - 0.5) * 720,
         deriva: (Math.random() - 0.5) * 200,
         redondo: Math.random() > 0.6,
