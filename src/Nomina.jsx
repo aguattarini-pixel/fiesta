@@ -3,7 +3,8 @@ import { llamar } from './supabase.js'
 
 // Actualizar la nómina de empleados subiendo un Excel.
 // El Excel necesita columnas parecidas a: "NOMBRE Y APELLIDO", "CUIL" (o "DNI"),
-// "LOCAL/AREA" y "PUESTO". La fila de títulos puede estar en cualquier lugar arriba.
+// "LOCAL/AREA", "PUESTO" y (opcional) "EXCLUIDO SORTEO" con SI / NO.
+// La fila de títulos puede estar en cualquier lugar arriba.
 
 const sinTildes = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase()
 const titulo = (s) =>
@@ -32,6 +33,7 @@ function leerFilas(XLSX, archivo) {
         doc,
         area: t.findIndex((x) => x.includes('LOCAL') || x.includes('AREA') || x.includes('SUCURSAL')),
         puesto: t.findIndex((x) => x.includes('PUESTO') || x.includes('CARGO')),
+        excluido: t.findIndex((x) => x.includes('EXCLU')),
       }
       break
     }
@@ -53,6 +55,7 @@ function leerFilas(XLSX, archivo) {
       return
     }
     const a = col.area >= 0 ? r[col.area] : ''
+    const ex = col.excluido >= 0 ? sinTildes(r[col.excluido]).trim() : null
     const area = typeof a === 'number' ? `Local ${a}` : String(a ?? '').trim()
     empleados.push({
       dni,
@@ -60,15 +63,17 @@ function leerFilas(XLSX, archivo) {
       nombre: titulo(nombre),
       area,
       puesto: col.puesto >= 0 ? String(r[col.puesto] ?? '').trim() : '',
+      // true / false si el Excel tiene la columna; null si no la tiene (se conserva lo actual)
+      excluido: ex === null ? null : ['SI', 'S', 'X', 'TRUE', 'VERDADERO', '1'].includes(ex) ? 'true' : 'false',
     })
   })
-  return { empleados, salteados }
+  return { empleados, salteados, conExcluidos: col.excluido >= 0 }
 }
 
 export default function Nomina({ clave, alTerminar }) {
   const [abierto, setAbierto] = useState(false)
   const [datos, setDatos] = useState(null) // { empleados, salteados, archivo }
-  const [quitar, setQuitar] = useState(true)
+  const [modo, setModo] = useState(null) // 'actualizar' | 'reemplazar'
   const [claveReinicio, setClaveReinicio] = useState('')
   const [trabajando, setTrabajando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
@@ -77,6 +82,7 @@ export default function Nomina({ clave, alTerminar }) {
     const f = e.target.files?.[0]
     setMensaje(null)
     setDatos(null)
+    setModo(null)
     if (!f) return
     try {
       const XLSX = await import('xlsx')
@@ -91,24 +97,31 @@ export default function Nomina({ clave, alTerminar }) {
   }
 
   async function subir() {
-    if (!datos || !claveReinicio.trim()) return
+    if (!datos || !modo || !claveReinicio.trim()) return
+    if (
+      modo === 'reemplazar' &&
+      !window.confirm(
+        'Se va a borrar la nómina anterior. Quienes no estén en este Excel se eliminan junto con su inscripción y premio. ¿Continuar?'
+      )
+    )
+      return
     setTrabajando(true)
     setMensaje(null)
     try {
       const r = await llamar(
         'importar_empleados',
-        { p_clave_panel: clave, p_clave_reinicio: claveReinicio.trim(), p_filas: datos.empleados, p_quitar: quitar },
+        { p_clave_panel: clave, p_clave_reinicio: claveReinicio.trim(), p_filas: datos.empleados, p_quitar: modo === 'reemplazar' },
         1
       )
       if (!r?.ok) {
         setMensaje({ error: true, texto: r?.error || 'No se pudo actualizar.' })
       } else {
         let t = `Listo: ${r.nuevos} nuevos y ${r.actualizados} actualizados.`
-        if (quitar) t += ` Se quitaron ${r.quitados} que ya no están.`
-        if (r.no_quitados) t += ` ${r.no_quitados} no se quitaron porque tienen inscripción (borrala antes con "Reiniciar todo").`
-        t += ` Total en la base: ${r.empleados}.`
+        if (modo === 'reemplazar') t += ` Se quitaron ${r.quitados} de la nómina anterior.`
+        t += ` Total en la base: ${r.empleados} (${r.excluidos} excluidos del sorteo).`
         setMensaje({ error: false, texto: t })
         setDatos(null)
+        setModo(null)
         setClaveReinicio('')
         alTerminar()
       }
@@ -127,8 +140,8 @@ export default function Nomina({ clave, alTerminar }) {
       {abierto && (
         <div className="herramientas-caja">
           <p className="texto-suave chico">
-            Subí el Excel con las columnas <b>Nombre y apellido</b>, <b>CUIL</b> (o DNI), <b>Local/Área</b> y <b>Puesto</b>,
-            como el de este año. Los que ya estaban se actualizan y los nuevos se agregan. La marca de excluido se conserva.
+            Subí el Excel con las columnas <b>Nombre y apellido</b>, <b>CUIL</b> (o DNI), <b>Local/Área</b>, <b>Puesto</b> y{' '}
+            <b>Excluido sorteo</b> (SI o NO). Después elegís si querés reemplazar la nómina o solo actualizarla.
           </p>
           <input type="file" accept=".xlsx,.xls,.csv" onChange={elegirArchivo} className="campo archivo" />
 
@@ -144,10 +157,32 @@ export default function Nomina({ clave, alTerminar }) {
                   {datos.salteados.length > 5 ? '…' : ''}
                 </p>
               )}
-              <label className="check">
-                <input type="checkbox" checked={quitar} onChange={(e) => setQuitar(e.target.checked)} />
-                Quitar de la base a quienes ya no están en este Excel
-              </label>
+              <p className="texto-suave chico">
+                {datos.conExcluidos
+                  ? `Columna de excluidos: encontrada (${datos.empleados.filter((x) => x.excluido === 'true').length} marcados con SI).`
+                  : 'El Excel no tiene columna de excluidos: se conservan las marcas actuales.'}
+              </p>
+              <p className="etiqueta">¿Qué querés hacer?</p>
+              <div className="opciones-reinicio">
+                <button
+                  className={'opcion-reinicio' + (modo === 'actualizar' ? ' sel' : '')}
+                  onClick={() => setModo('actualizar')}
+                >
+                  <span className="opcion-titulo">Agregar nuevos y actualizar</span>
+                  <span className="opcion-texto">
+                    Agrega a los nuevos y cambia nombre, local, puesto y excluidos de los que ya estaban. Nadie se borra.
+                  </span>
+                </button>
+                <button
+                  className={'opcion-reinicio peligro' + (modo === 'reemplazar' ? ' sel' : '')}
+                  onClick={() => setModo('reemplazar')}
+                >
+                  <span className="opcion-titulo">Reemplazar la nómina</span>
+                  <span className="opcion-texto">
+                    Borra la nómina anterior y deja solo la de este Excel. Quienes no estén se eliminan con su inscripción y premio.
+                  </span>
+                </button>
+              </div>
               <label className="etiqueta" htmlFor="claveNomina">Clave de reinicio</label>
               <input
                 id="claveNomina"
@@ -156,8 +191,12 @@ export default function Nomina({ clave, alTerminar }) {
                 value={claveReinicio}
                 onChange={(e) => setClaveReinicio(e.target.value)}
               />
-              <button className="boton" disabled={!claveReinicio.trim() || trabajando} onClick={subir}>
-                {trabajando ? 'CARGANDO…' : 'ACTUALIZAR NÓMINA'}
+              <button
+                className={'boton' + (modo === 'reemplazar' ? ' boton-peligro' : '')}
+                disabled={!modo || !claveReinicio.trim() || trabajando}
+                onClick={subir}
+              >
+                {trabajando ? 'CARGANDO…' : modo === 'reemplazar' ? 'REEMPLAZAR NÓMINA' : 'ACTUALIZAR NÓMINA'}
               </button>
             </div>
           )}
