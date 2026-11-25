@@ -64,6 +64,9 @@ export default function Rodillos({ numero = '000', giro = 0, paradas, vueltas, a
           requestAnimationFrame(anim)
         } else {
           actual.current[i] = t
+          // Deja solo la cifra final, centrada, así no se corre si cambia el tamaño de la pantalla
+          el.innerHTML = `<div>${t}</div>`
+          el.style.transform = 'translateY(0px)'
           reel.classList.add('ok')
           cb.current.alFrenar?.(i)
           if (++listos === 3) cb.current.alTerminar?.()
