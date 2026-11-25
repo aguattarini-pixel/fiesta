@@ -6,7 +6,6 @@ import Rodillos from './Rodillos.jsx'
 import { descargarInvitacion } from './invitacion.js'
 
 const PREFERENCIAS = ['Vegetariano/a', 'Celíaco/a', 'Ninguna']
-const emailValido = (e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e.trim())
 
 const aparecer = {
   initial: { opacity: 0, y: 16 },
@@ -49,7 +48,6 @@ export default function Formulario() {
   const [dni, setDni] = useState('')
   const [empleado, setEmpleado] = useState(null) // {encontrado, nombre, ya_inscripto, asiste, numero}
   const [buscando, setBuscando] = useState(false)
-  const [email, setEmail] = useState('')
   const [asiste, setAsiste] = useState(null)
   const [preferencia, setPreferencia] = useState(null)
   const [alergico, setAlergico] = useState(null)
@@ -91,7 +89,6 @@ export default function Formulario() {
     const d = soloDigitos(dni)
     if (d.length < 7) err.dni = 'Ingresá tu DNI (solo números).'
     else if (empleado && !empleado.encontrado) err.dni = 'No encontramos ese DNI en la lista de empleados.'
-    if (!emailValido(email)) err.email = 'Ingresá un correo válido.'
     if (asiste === null) err.asiste = 'Elegí una opción.'
     if (asiste === true) {
       if (!preferencia) err.preferencia = 'Elegí una opción.'
@@ -105,7 +102,7 @@ export default function Formulario() {
     try {
       const r = await llamar('registrar', {
         p_dni: d,
-        p_email: email.trim(),
+        p_email: null,
         p_asiste: asiste,
         p_preferencia: asiste ? preferencia : null,
         p_alergia: asiste && alergico ? alergia.trim() : null,
@@ -176,22 +173,6 @@ export default function Formulario() {
                   </button>
                 </div>
               )}
-
-              <label className="etiqueta" htmlFor="email">Correo electrónico</label>
-              <input
-                id="email"
-                className="campo"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="nombre@correo.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  limpiarError('email')
-                }}
-              />
-              {errores.email && <p className="error">{errores.email}</p>}
 
               <p className="etiqueta">¿Contamos con tu presencia?</p>
               <Opciones
@@ -340,7 +321,7 @@ function Resultado({ resultado, cfg }) {
         {listo && (
           <motion.div key="info" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <p className="texto-suave chico">
-              Guardá este número: lo vas a necesitar en el sorteo. Descargá tu invitación para tenerlo siempre a mano.
+              Guardá este número. Para participar del sorteo, al llegar a la fiesta registrá tu asistencia con tu DNI en recepción.
             </p>
             <p className="fecha">{cfg.fecha} · {cfg.hora}</p>
             <p className="lugar">{cfg.lugar}</p>

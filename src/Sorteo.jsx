@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { llamar, formatoNumero } from './supabase.js'
 import { RODILLOS_SORTEO } from './config.js'
@@ -120,6 +120,17 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
   const [girando, setGirando] = useState(false)
   const [confeti, setConfeti] = useState(0)
 
+  // Mientras llega gente a la fiesta, la lista se actualiza sola cada 30 segundos
+  const girandoRef = useRef(false)
+  girandoRef.current = girando
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (!girandoRef.current) recargar()
+    }, 30000)
+    return () => clearInterval(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const disponibles = useMemo(() => lista.filter((p) => !p.gano), [lista])
   const ganadores = useMemo(() => lista.filter((p) => p.gano).reverse(), [lista])
 
@@ -192,7 +203,7 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
     <main className="sorteo-pantalla">
       <Confeti disparo={confeti} />
       <div className="sorteo-barra">
-        <span>{disponibles.length} participan · {ganadores.length} ganadores</span>
+        <span>{disponibles.length} presentes participan · {ganadores.length} ganadores</span>
         {sinConexion && <span className="sin-conexion">Sin conexión: se guarda en esta compu</span>}
         <button className="boton-mini" onClick={recargar} disabled={cargando || girando}>
           {cargando ? 'Actualizando…' : 'Actualizar lista'}

@@ -66,7 +66,7 @@ export async function descargarInvitacion(numero) {
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
 
-// Texto con espacio entre letras, centrado según lo que realmente se ve
+// Texto con espacio entre letras, centrado según lo que realmente se ve (no el ancho de la letra)
 function dibujarCentrado(ctx, texto, x, y, espacio) {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'

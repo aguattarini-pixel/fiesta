@@ -129,3 +129,64 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
   .titulo { font-size: 54px; }
   .subtitulo { letter-spacing: 6px; }
 }
+
+/* ---------- Recepción (tablet) ---------- */
+.recepcion { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 32px; position: relative; text-align: center; user-select: none; -webkit-user-select: none; }
+.recepcion .salir { position: absolute; top: 14px; right: 14px; }
+.recepcion .encabezado { margin-bottom: 10px; }
+.zona-teclado { width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; }
+.pantalla-dni {
+  width: 100%; margin-top: 14px; padding: 18px 12px; border: 1.5px solid var(--dorado); border-radius: 16px;
+  font-size: clamp(40px, 7vh, 60px); letter-spacing: 4px; font-variant-numeric: tabular-nums; color: var(--blanco);
+  box-shadow: 0 0 30px rgba(233, 196, 106, 0.12);
+}
+.pantalla-dni.vacia { color: #444; }
+.aviso-recepcion { min-height: 34px; display: flex; align-items: center; justify-content: center; margin: 8px 0; }
+.error.grande { font-size: 16px; margin: 0; }
+.teclado { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tecla {
+  height: clamp(64px, 10vh, 88px); border-radius: 16px; border: 1px solid #333; background: #0e0e0e; color: var(--blanco);
+  font-size: 32px; font-family: var(--sans); cursor: pointer; touch-action: manipulation;
+}
+.tecla:active { border-color: var(--dorado); }
+.tecla.borrar { color: var(--gris); font-size: 28px; }
+.tecla.ok { background: var(--dorado); color: var(--negro); font-weight: 600; border: none; letter-spacing: 2px; }
+.tecla:disabled { opacity: 0.5; }
+.bienvenida { width: 100%; max-width: 560px; padding: 20px 8px; cursor: pointer; }
+.bienvenida-hola { color: var(--dorado); letter-spacing: 2px; font-size: 18px; margin: 10px 0 6px; }
+.bienvenida-nombre { font-family: var(--serif); font-size: clamp(34px, 6vh, 56px); margin: 0 0 22px; line-height: 1.1; }
+.bienvenida-numero {
+  font-family: var(--serif); color: var(--dorado); font-size: clamp(110px, 20vh, 190px); margin: 0; line-height: 1;
+  letter-spacing: 10px; text-shadow: 0 0 40px rgba(233, 196, 106, 0.45);
+}
+.bienvenida-ok { font-size: 18px; margin: 18px 0 26px; }
+
+/* ---------- Panel ---------- */
+.panel { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+.panel-cabecera { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.panel-titulo { font-size: clamp(32px, 5vw, 46px); text-align: left; }
+.panel-acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.boton.boton-chico { width: auto; height: 42px; margin: 0; padding: 0 20px; font-size: 13px; }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.tarjeta-dato { background: #0d0d0d; border: 1px solid #262626; border-radius: 16px; padding: 18px; }
+.tarjeta-dato.destacada { border-color: var(--dorado); background: rgba(233, 196, 106, 0.07); }
+.dato-titulo { margin: 0; font-size: 13px; color: var(--gris); }
+.dato-valor { margin: 6px 0 2px; font-family: var(--serif); font-size: 48px; line-height: 1; color: var(--blanco); }
+.tarjeta-dato.destacada .dato-valor { color: var(--dorado); }
+.dato-detalle { margin: 0; font-size: 12px; color: #8a8a8a; }
+.bloque { margin-top: 28px; }
+.bloque-titulo { font-size: 15px; font-weight: 500; color: var(--dorado); letter-spacing: 1px; margin: 0 0 10px; }
+.tabla-scroll { overflow-x: auto; border: 1px solid #222; border-radius: 12px; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+.tabla th { text-align: left; font-weight: 500; font-size: 12px; color: var(--gris); padding: 10px 12px; border-bottom: 1px solid #262626; background: #0b0b0b; position: sticky; top: 0; }
+.tabla td { padding: 9px 12px; border-bottom: 1px solid #1a1a1a; vertical-align: middle; }
+.tabla tr:last-child td { border-bottom: none; }
+.tabla .dorado { color: var(--dorado); font-variant-numeric: tabular-nums; }
+.barra { display: inline-block; width: 60px; height: 6px; background: #222; border-radius: 3px; margin-right: 8px; vertical-align: middle; overflow: hidden; }
+.barra span { display: block; height: 100%; background: var(--dorado); }
+.pestanas { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.pestana { background: transparent; color: var(--gris); border: 1px solid #333; border-radius: 999px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+.pestana.activa { color: var(--negro); background: var(--dorado); border-color: var(--dorado); }
+.buscador { margin-bottom: 10px; height: 42px; font-size: 14px; }
+.etiqueta-chica { margin-left: 8px; font-size: 10px; padding: 2px 6px; border-radius: 6px; border: 1px solid #444; color: var(--gris); text-transform: uppercase; letter-spacing: 0.5px; }
+.etiqueta-chica.oro { border-color: var(--dorado); color: var(--dorado); }
