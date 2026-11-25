@@ -7,6 +7,20 @@ import { descargarInvitacion } from './invitacion.js'
 
 const PREFERENCIAS = ['Vegetariano/a', 'Celíaco/a', 'Ninguna']
 
+// "2026-12-04 23:59:59" (hora de Argentina) -> Date
+const fechaCierre = (txt) => {
+  const d = new Date(String(txt || '').trim().replace(' ', 'T') + '-03:00')
+  return isNaN(d) ? null : d
+}
+const ZONA = 'America/Argentina/Cordoba'
+const textoCierre = (d) =>
+  d
+    ? d.toLocaleDateString('es-AR', { timeZone: ZONA, day: '2-digit', month: '2-digit' }) +
+      ' a las ' +
+      d.toLocaleTimeString('es-AR', { timeZone: ZONA, hour: '2-digit', minute: '2-digit', hour12: false }) +
+      ' hs'
+    : ''
+
 const aparecer = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
@@ -126,7 +140,13 @@ export default function Formulario() {
     setPaso('resultado')
   }
 
-  const cerrada = cfg.inscripcion_abierta !== 'si'
+  const cierre = fechaCierre(cfg.cierre_inscripcion)
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setAhora(new Date()), 30000)
+    return () => clearInterval(t)
+  }, [])
+  const cerrada = cfg.inscripcion_abierta !== 'si' || (cierre && ahora > cierre)
 
   return (
     <main className="pagina">
@@ -136,10 +156,40 @@ export default function Formulario() {
           {cerrada && paso === 'form' ? (
             <motion.div key="cerrada" {...aparecer} className="centro">
               <p className="texto-grande">La inscripción está cerrada.</p>
-              <p className="texto-suave">Si tenés dudas, consultá con RRHH.</p>
+              {cierre && <p className="texto-suave">Cerró el {textoCierre(cierre)}.</p>}
+              <p className="texto-suave chico espacio">Si ya te anotaste, ingresá tu DNI para ver tu número.</p>
+              <input
+                className="campo"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="DNI sin puntos"
+                value={dni}
+                maxLength={10}
+                onChange={(e) => setDni(soloDigitos(e.target.value))}
+              />
+              <div className="aviso-dni">
+                {buscando && <span className="texto-suave">Buscando…</span>}
+                {!buscando && empleado?.encontrado && !(empleado.ya_inscripto && empleado.asiste) && (
+                  <span className="texto-suave">
+                    {empleado.nombre}: no tenés número asignado. Si venís a la fiesta, registrate en recepción al llegar.
+                  </span>
+                )}
+                {!buscando && empleado && !empleado.encontrado && (
+                  <span className="error">No encontramos ese DNI en la lista de empleados.</span>
+                )}
+              </div>
+              {empleado?.ya_inscripto && empleado.asiste && (
+                <div className="ya-inscripto">
+                  <p>{empleado.nombre}, tu número es <b>{formatoNumero(empleado.numero)}</b>.</p>
+                  <button type="button" className="boton secundario" onClick={verMiNumero}>
+                    VER MI NÚMERO
+                  </button>
+                </div>
+              )}
             </motion.div>
           ) : paso === 'form' ? (
             <motion.form key="form" {...aparecer} onSubmit={enviar} noValidate>
+              {cierre && <p className="limite">Podés anotarte hasta el {textoCierre(cierre)}</p>}
               <label className="etiqueta" htmlFor="dni">DNI</label>
               <input
                 id="dni"
