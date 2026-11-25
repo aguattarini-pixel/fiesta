@@ -34,7 +34,7 @@ function crearLuces() {
       brillo: brillante,
       // Cada luz arranca en un punto distinto de su ciclo: así se prenden y apagan alternadas
       demora: -r() * 8,
-      duracion: 2.5 + r() * 5,
+      duracion: 1.5 + r() * 3,
       titila: r() < 0.9,
     })
   }
