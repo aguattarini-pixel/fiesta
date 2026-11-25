@@ -229,3 +229,6 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 /* Lista de ganadores sin barra de desplazamiento */
 .lista-ganadores { overflow: hidden !important; scrollbar-width: none; }
 .lista-ganadores::-webkit-scrollbar { display: none; }
+.campo.archivo { height: auto; padding: 10px; font-size: 14px; margin-top: 10px; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--dorado); }
