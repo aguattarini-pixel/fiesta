@@ -10,16 +10,17 @@ import { useEffect, useRef } from 'react'
 //  vueltas     -> [n, n, n] vueltas completas de 0 a 9 antes de frenar
 //  alTerminar  -> función que se llama cuando frenan los tres
 //  alFrenar    -> función(i) que se llama cuando frena cada rodillo
+//  alTic       -> función() que se llama cada vez que pasa un número (para el sonido)
 
 const mod = (n) => ((n % 10) + 10) % 10
 const frenado = (x) => 1 - Math.pow(1 - x, 4)
 
-export default function Rodillos({ numero = '000', giro = 0, paradas, vueltas, alTerminar, alFrenar, grande = false }) {
+export default function Rodillos({ numero = '000', giro = 0, paradas, vueltas, alTerminar, alFrenar, alTic, grande = false }) {
   const reels = [useRef(null), useRef(null), useRef(null)]
   const strips = [useRef(null), useRef(null), useRef(null)]
   const actual = useRef([0, 0, 0])
   const cb = useRef({})
-  cb.current = { alTerminar, alFrenar }
+  cb.current = { alTerminar, alFrenar, alTic }
 
   // Al principio muestra el número tal cual (o 000)
   useEffect(() => {
@@ -56,10 +57,17 @@ export default function Rodillos({ numero = '000', giro = 0, paradas, vueltas, a
       const hasta = -alto
       el.style.transform = `translateY(${desde}px)`
 
+      let ultimaCifra = -1
       const anim = (ahora) => {
         if (cancelado) return
         const p = Math.min(Math.max((ahora - inicio) / paradas[i], 0), 1)
-        el.style.transform = `translateY(${desde + (hasta - desde) * frenado(p)}px)`
+        const pos = desde + (hasta - desde) * frenado(p)
+        el.style.transform = `translateY(${pos}px)`
+        const cifra = Math.floor(-pos / alto)
+        if (cifra !== ultimaCifra) {
+          if (ultimaCifra !== -1) cb.current.alTic?.()
+          ultimaCifra = cifra
+        }
         if (p < 1) {
           requestAnimationFrame(anim)
         } else {
