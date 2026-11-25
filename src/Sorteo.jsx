@@ -204,6 +204,7 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
       <Confeti disparo={confeti} />
       <div className="sorteo-barra">
         {sinConexion && <span className="sin-conexion">Sin conexión: se guarda en esta compu</span>}
+      </div>
 
       <div className="sorteo-centro">
         <h1 className="titulo grande">FIESTA</h1>
