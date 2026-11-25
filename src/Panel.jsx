@@ -325,7 +325,6 @@ function Tablero({ clave, salir }) {
             Por local / área {verLocales ? '▴' : '▾'}
           </button>
         </div>
-        </button>
         {verLocales && (
         <div className="tabla-scroll">
           <table className="tabla">
