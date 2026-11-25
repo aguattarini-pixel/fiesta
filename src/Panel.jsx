@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { llamar, formatoNumero } from './supabase.js'
 import Acceso from './Acceso.jsx'
-
+import Nomina from './Nomina.jsx'
 const ACTUALIZAR_CADA = 20000 // ms
 
 export default function Panel() {
@@ -382,6 +382,7 @@ function Tablero({ clave, salir }) {
       </section>
 
       <Reinicio clave={clave} alTerminar={cargar} />
+      <Nomina clave={clave} alTerminar={cargar} />
     </main>
   )
 }
