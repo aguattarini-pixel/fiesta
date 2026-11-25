@@ -204,3 +204,7 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 .confirmar-reinicio { margin-top: 14px; padding: 16px; border: 1px solid #3a2020; border-radius: 12px; background: rgba(255, 138, 138, 0.04); }
 .boton.boton-peligro { background: #b33a3a; color: #fff; }
 .ok-msg { color: #8fd18f; font-size: 14px; margin-top: 12px; }
+.desplegable { width: 100%; display: flex; justify-content: space-between; align-items: center; background: #0d0d0d; border: 1px solid #262626; border-radius: 12px; padding: 14px 16px; cursor: pointer; margin-bottom: 10px; }
+.desplegable .bloque-titulo { margin: 0; }
+.flecha { color: var(--dorado); font-size: 18px; transition: transform 0.2s; }
+.flecha.abierta { transform: rotate(180deg); }
