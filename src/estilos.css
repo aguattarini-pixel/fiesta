@@ -190,3 +190,17 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 .buscador { margin-bottom: 10px; height: 42px; font-size: 14px; }
 .etiqueta-chica { margin-left: 8px; font-size: 10px; padding: 2px 6px; border-radius: 6px; border: 1px solid #444; color: var(--gris); text-transform: uppercase; letter-spacing: 0.5px; }
 .etiqueta-chica.oro { border-color: var(--dorado); color: var(--dorado); }
+.limite { text-align: center; font-size: 13px; color: var(--dorado); letter-spacing: 0.5px; margin: 14px 0 0; }
+
+/* ---------- Herramientas del panel ---------- */
+.herramientas { margin-top: 40px; border-top: 1px solid #222; padding-top: 20px; }
+.herramientas-caja { margin-top: 14px; max-width: 640px; }
+.opciones-reinicio { display: grid; gap: 8px; }
+.opcion-reinicio { text-align: left; background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px; color: var(--blanco); cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.opcion-reinicio.sel { border-color: var(--dorado); }
+.opcion-reinicio.peligro.sel { border-color: var(--error); }
+.opcion-titulo { font-weight: 500; font-size: 15px; }
+.opcion-texto { font-size: 13px; color: var(--gris); }
+.confirmar-reinicio { margin-top: 14px; padding: 16px; border: 1px solid #3a2020; border-radius: 12px; background: rgba(255, 138, 138, 0.04); }
+.boton.boton-peligro { background: #b33a3a; color: #fff; }
+.ok-msg { color: #8fd18f; font-size: 14px; margin-top: 12px; }
