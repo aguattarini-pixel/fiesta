@@ -105,6 +105,7 @@ function Tablero({ clave, salir }) {
       asistieron: datos.filter((r) => r.llego).sort((a, b) => (b.llegada || '').localeCompare(a.llegada || '')),
       noAsistieron: datos.filter((r) => r.confirmo && !r.llego),
       sinResponder: datos.filter((r) => r.sinResponder || r.dijoNo),
+      ganadores: datos.filter((r) => r.gano).sort((a, b) => (a.gano_en || '').localeCompare(b.gano_en || '')),
     }
   }, [datos])
 
@@ -188,6 +189,11 @@ function Tablero({ clave, salir }) {
       )
       XLSX.utils.book_append_sheet(wb, hoja(listas.asistieron.map(persona), anchosPersona), 'Asistieron')
       XLSX.utils.book_append_sheet(wb, hoja(listas.noAsistieron.map(persona), anchosPersona), 'No asistieron')
+      XLSX.utils.book_append_sheet(
+        wb,
+        hoja(listas.ganadores.map((r, i) => ({ Orden: i + 1, ...persona(r), 'Hora del sorteo': hora(r.gano_en) })), [8, ...anchosPersona, 15]),
+        'Ganadores'
+      )
       XLSX.utils.book_append_sheet(wb, hoja(datos.map(persona), anchosPersona), 'Todos')
       const f = new Date()
       const sello = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}_${String(f.getHours()).padStart(2, '0')}${String(f.getMinutes()).padStart(2, '0')}`
@@ -220,6 +226,7 @@ function Tablero({ clave, salir }) {
     ['asistieron', `Asistieron (${listas.asistieron.length})`],
     ['noAsistieron', `No asistieron (${listas.noAsistieron.length})`],
     ['sinResponder', `No vienen / sin responder (${listas.sinResponder.length})`],
+    ['ganadores', `Ganadores (${listas.ganadores.length})`],
   ]
 
   return (
@@ -275,6 +282,7 @@ function Tablero({ clave, salir }) {
           <table className="tabla">
             <thead>
               <tr>
+                {vista === 'ganadores' && <th>Orden</th>}
                 <th>Nombre</th>
                 <th>DNI</th>
                 <th>Local / Área</th>
@@ -289,6 +297,7 @@ function Tablero({ clave, salir }) {
             <tbody>
               {filas.map((r) => (
                 <tr key={r.dni}>
+                  {vista === 'ganadores' && <td className="dorado">{listas.ganadores.indexOf(r) + 1}°</td>}
                   <td>
                     {r.nombre}
                     {r.excluido && <span className="etiqueta-chica">excluido</span>}
@@ -320,7 +329,7 @@ function Tablero({ clave, salir }) {
       </section>
 
       <section className="bloque">
-                <div className="pestanas">
+        <div className="pestanas">
           <button className={'pestana' + (verLocales ? ' activa' : '')} onClick={() => setVerLocales((v) => !v)}>
             Por local / área {verLocales ? '▴' : '▾'}
           </button>
@@ -401,7 +410,7 @@ function Reinicio({ clave, alTerminar }) {
       if (!r?.ok) {
         setMensaje({ error: true, texto: r?.error || 'No se pudo borrar.' })
       } else {
-        setMensaje({ error: false, texto: `Listo: ${elegida.titulo.toLowerCase()} hecho. Si la pantalla del sorteo está abierta, tocá “apretá F5”.` })
+        setMensaje({ error: false, texto: `Listo: ${elegida.titulo.toLowerCase()} hecho. Si la pantalla del sorteo está abierta, tocá “Actualizar lista”.` })
         setOpcion(null)
         setClaveReinicio('')
         setConfirmacion('')
