@@ -206,5 +206,12 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 .ok-msg { color: #8fd18f; font-size: 14px; margin-top: 12px; }
 .desplegable { width: 100%; display: flex; justify-content: space-between; align-items: center; background: #0d0d0d; border: 1px solid #262626; border-radius: 12px; padding: 14px 16px; cursor: pointer; margin-bottom: 10px; }
 .desplegable .bloque-titulo { margin: 0; }
+/* ---------- Luces de fondo ---------- */
+.luces { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.luz { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); }
+.luz.titila { animation-name: titilar; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+@keyframes titilar { 0%, 100% { opacity: var(--o); } 50% { opacity: calc(var(--o) * 0.3); } }
+#root > *:not(.luces) { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .luz.titila { animation: none; } }
 .flecha { color: var(--dorado); font-size: 18px; transition: transform 0.2s; }
 .flecha.abierta { transform: rotate(180deg); }
