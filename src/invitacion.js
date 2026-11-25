@@ -1,10 +1,13 @@
 import { formatoNumero } from './supabase.js'
 
+// Cuánto se sube el diseño del flyer para dejar más lugar al número abajo
+const SUBIR = 90
+
 // Arma la invitación personalizada: el flyer de Canva con el número abajo
 export async function crearInvitacion(numero) {
   try {
     await Promise.all([
-      document.fonts.load('110px "Italiana"'),
+      document.fonts.load('175px "Italiana"'),
       document.fonts.load('500 30px "Montserrat"'),
     ])
   } catch {
@@ -18,23 +21,35 @@ export async function crearInvitacion(numero) {
     i.src = '/flyer.png'
   })
 
+  const W = img.width // 1080
+  const H = img.height // 1920
   const c = document.createElement('canvas')
-  c.width = img.width // 1080
-  c.height = img.height // 1920
+  c.width = W
+  c.height = H
   const ctx = c.getContext('2d')
-  ctx.drawImage(img, 0, 0)
 
-  const x = c.width / 2
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, W, H)
+  // Todo el diseño un poco más arriba
+  ctx.drawImage(img, 0, SUBIR, W, H - SUBIR, 0, 0, W, H - SUBIR)
+  // La franja de arriba (solo puntitos) se pone abajo para completar
+  ctx.drawImage(img, 0, 0, W, SUBIR, 0, H - SUBIR, W, SUBIR)
 
+  const x = W / 2
+
+  // Título chico
   ctx.fillStyle = '#ffffff'
-  ctx.font = '500 24px Montserrat, sans-serif'
-  dibujarEspaciado(ctx, 'TU NÚMERO DE SORTEO', x, 1790, 5)
+  ctx.font = '500 30px Montserrat, sans-serif'
+  dibujarCentrado(ctx, 'TU NÚMERO DE SORTEO', x, 1695, 8)
 
+  // Número grande, dorado y con brillo
+  ctx.font = '175px Italiana, serif'
   ctx.fillStyle = '#E9C46A'
-  ctx.font = '120px Italiana, serif'
-  dibujarEspaciado(ctx, formatoNumero(numero), x, 1895, 18)
+  ctx.shadowColor = 'rgba(233, 196, 106, 0.55)'
+  ctx.shadowBlur = 36
+  dibujarCentrado(ctx, formatoNumero(numero), x, 1862, 22)
+  ctx.shadowBlur = 0
+  dibujarCentrado(ctx, formatoNumero(numero), x, 1862, 22)
 
   return new Promise((ok) => c.toBlob(ok, 'image/png'))
 }
@@ -51,16 +66,21 @@ export async function descargarInvitacion(numero) {
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
 
-// Texto centrado con espacio entre letras (como en el flyer)
-function dibujarEspaciado(ctx, texto, x, y, espacio) {
-  const letras = [...texto]
-  const anchos = letras.map((l) => ctx.measureText(l).width)
-  const total = anchos.reduce((a, b) => a + b, 0) + espacio * (letras.length - 1)
-  let cx = x - total / 2
+// Texto con espacio entre letras, centrado según lo que realmente se ve
+function dibujarCentrado(ctx, texto, x, y, espacio) {
   ctx.textAlign = 'left'
-  letras.forEach((l, i) => {
-    ctx.fillText(l, cx, y)
-    cx += anchos[i] + espacio
+  ctx.textBaseline = 'alphabetic'
+  const letras = [...texto]
+  const medidas = letras.map((l) => ctx.measureText(l))
+  const pos = []
+  let cx = 0
+  medidas.forEach((m) => {
+    pos.push(cx)
+    cx += m.width + espacio
   })
-  ctx.textAlign = 'center'
+  const ultimo = letras.length - 1
+  const izq = pos[0] - (medidas[0].actualBoundingBoxLeft || 0)
+  const der = pos[ultimo] + (medidas[ultimo].actualBoundingBoxRight || medidas[ultimo].width)
+  const inicio = x - (izq + der) / 2
+  letras.forEach((l, i) => ctx.fillText(l, inicio + pos[i], y))
 }
