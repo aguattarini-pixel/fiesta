@@ -203,7 +203,6 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
     <main className="sorteo-pantalla">
       <Confeti disparo={confeti} />
       <div className="sorteo-barra">
-        <span>{disponibles.length} presentes participan · {ganadores.length} ganadores</span
         {sinConexion && <span className="sin-conexion">Sin conexión: se guarda en esta compu</span>}
         <button className="boton-mini" onClick={recargar} disabled={cargando || girando}>
           {cargando ? 'Actualizando…' : 'Actualizar lista'}
