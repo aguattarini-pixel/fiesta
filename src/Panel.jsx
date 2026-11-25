@@ -106,6 +106,7 @@ function Tablero({ clave, salir }) {
       noAsistieron: datos.filter((r) => r.confirmo && !r.llego),
       sinResponder: datos.filter((r) => r.sinResponder || r.dijoNo),
       ganadores: datos.filter((r) => r.gano).sort((a, b) => (a.gano_en || '').localeCompare(b.gano_en || '')),
+      excluidos: datos.filter((r) => r.excluido),
     }
   }, [datos])
 
@@ -227,7 +228,13 @@ function Tablero({ clave, salir }) {
     ['noAsistieron', `No asistieron (${listas.noAsistieron.length})`],
     ['sinResponder', `No vienen / sin responder (${listas.sinResponder.length})`],
     ['ganadores', `Ganadores (${listas.ganadores.length})`],
+    ['excluidos', `Excluidos (${listas.excluidos.length})`],
   ]
+
+  const conComida = vista === 'asistieron' || vista === 'noAsistieron'
+  const conEstado = vista === 'sinResponder' || vista === 'excluidos'
+  const estado = (r) =>
+    r.llego ? 'Llegó' : r.confirmo ? 'Confirmó' : r.dijoNo ? 'No asiste' : 'Sin responder'
 
   return (
     <main className="panel">
@@ -288,9 +295,9 @@ function Tablero({ clave, salir }) {
                 <th>Local / Área</th>
                 <th>N°</th>
                 {vista === 'asistieron' && <th>Llegada</th>}
-                {vista !== 'sinResponder' && <th>Comida</th>}
-                {vista !== 'sinResponder' && <th>Alergia</th>}
-                {vista === 'sinResponder' && <th>Respuesta</th>}
+                {conComida && <th>Comida</th>}
+                {conComida && <th>Alergia</th>}
+                {conEstado && <th>Estado</th>}
                 {vista === 'asistieron' && <th></th>}
               </tr>
             </thead>
@@ -308,9 +315,9 @@ function Tablero({ clave, salir }) {
                   <td>{r.area}</td>
                   <td className="dorado">{r.numero ? formatoNumero(r.numero) : ''}</td>
                   {vista === 'asistieron' && <td>{hora(r.llegada)}</td>}
-                  {vista !== 'sinResponder' && <td>{r.preferencia || ''}</td>}
-                  {vista !== 'sinResponder' && <td>{r.alergia || ''}</td>}
-                  {vista === 'sinResponder' && <td>{r.dijoNo ? 'No asiste' : 'Sin responder'}</td>}
+                  {conComida && <td>{r.preferencia || ''}</td>}
+                  {conComida && <td>{r.alergia || ''}</td>}
+                  {conEstado && <td>{estado(r)}</td>}
                   {vista === 'asistieron' && (
                     <td>
                       <button className="boton-mini" onClick={() => deshacer(r)}>Deshacer</button>
