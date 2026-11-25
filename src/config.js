@@ -5,7 +5,7 @@ export const SUPABASE_KEY = 'sb_publishable_L_KbLwAKzgCiSZYN6utsXg_e4cScyqc'
 
 // Tiempos de los rodillos (en milisegundos) y vueltas completas de 0 a 9 de cada uno
 export const RODILLOS_FORMULARIO = { paradas: [3500, 5500, 7500], vueltas: [5, 8, 11] }
-export const RODILLOS_SORTEO = { paradas: [6000, 105000, 15000], vueltas: [6, 10, 15] }
+export const RODILLOS_SORTEO = { paradas: [6000, 10500, 15000], vueltas: [6, 10, 15] }
 
 // Valores por defecto si no se puede leer la tabla config
 export const CONFIG_DEFECTO = {
