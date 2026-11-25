@@ -79,7 +79,7 @@ function Tablero({ clave, salir }) {
       dijeronNo: c((r) => r.dijoNo),
       sinResponder: c((r) => r.sinResponder),
       excluidos: c((r) => r.excluido),
-      enSorteo: c((r) => r.llego && !r.excluido),
+      enSorteo: c((r) => r.llego && !r.excluido && r.numero),
     }
   }, [datos])
 
@@ -134,7 +134,7 @@ function Tablero({ clave, salir }) {
         'Local / Área': r.area,
         Puesto: r.puesto || '',
         'Número sorteo': r.numero ?? '',
-        Respuesta: r.sinResponder ? 'Sin responder' : r.dijoNo ? 'No asiste' : r.enRecepcion ? 'Se anotó en recepción' : 'Confirmó',
+        Respuesta: r.sinResponder ? 'Sin responder' : r.dijoNo ? 'No asiste' : r.enRecepcion ? 'Llegó sin anotarse' : 'Confirmó',
         'Asistió': r.llego ? 'Sí' : 'No',
         'Hora llegada': hora(r.llegada),
         Comida: r.preferencia || '',
@@ -159,7 +159,7 @@ function Tablero({ clave, salir }) {
             { Dato: 'Asistieron (total)', Cantidad: t.asistieron },
             { Dato: 'Confirmaron y asistieron', Cantidad: t.asistieronConfirmados },
             { Dato: 'Confirmaron y no asistieron', Cantidad: t.noAsistieron },
-            { Dato: 'Se anotaron en recepción', Cantidad: t.enRecepcion },
+            { Dato: 'Llegaron sin anotarse (sin número)', Cantidad: t.enRecepcion },
             { Dato: 'Dijeron que no', Cantidad: t.dijeronNo },
             { Dato: 'Sin responder', Cantidad: t.sinResponder },
             { Dato: 'Participan del sorteo', Cantidad: t.enSorteo },
@@ -179,7 +179,7 @@ function Tablero({ clave, salir }) {
             Asistieron: x.asistieron,
             'No asistieron': x.noAsistieron,
             '% asistencia': pct(x.asistieron, x.confirmaron),
-            'Se anotaron en recepción': x.sinAnotarse,
+            'Llegaron sin anotarse': x.sinAnotarse,
           })),
           [22, 11, 12, 11, 14, 13, 24]
         ),
@@ -211,7 +211,7 @@ function Tablero({ clave, salir }) {
     { titulo: 'Confirmaron', valor: t.confirmaron, detalle: `de ${t.empleados} empleados` },
     { titulo: 'Confirmaron y no vinieron', valor: t.noAsistieron, detalle: 'todavía no llegaron' },
     { titulo: 'En el sorteo', valor: t.enSorteo, detalle: `${t.excluidos} excluidos` },
-    { titulo: 'Se anotaron en recepción', valor: t.enRecepcion, detalle: 'sin formulario' },
+    { titulo: 'Llegaron sin anotarse', valor: t.enRecepcion, detalle: 'sin número, no participan' },
     { titulo: 'Dijeron que no', valor: t.dijeronNo, detalle: `${t.sinResponder} sin responder` },
   ]
 
@@ -267,7 +267,7 @@ function Tablero({ clave, salir }) {
                 <th>Asistieron</th>
                 <th>No asistieron</th>
                 <th>%</th>
-                <th>En recepción</th>
+                <th>Sin anotarse</th>
               </tr>
             </thead>
             <tbody>
@@ -324,7 +324,7 @@ function Tablero({ clave, salir }) {
                   <td>
                     {r.nombre}
                     {r.excluido && <span className="etiqueta-chica">excluido</span>}
-                    {r.enRecepcion && <span className="etiqueta-chica">recepción</span>}
+                    {r.enRecepcion && <span className="etiqueta-chica">sin anotarse</span>}
                     {r.gano && <span className="etiqueta-chica oro">ganó</span>}
                   </td>
                   <td>{r.dni}</td>
@@ -350,6 +350,112 @@ function Tablero({ clave, salir }) {
           </table>
         </div>
       </section>
+
+      <Reinicio clave={clave} alTerminar={cargar} />
     </main>
+  )
+}
+
+const OPCIONES_REINICIO = [
+  {
+    id: 'sorteo',
+    titulo: 'Reiniciar sorteo',
+    texto: 'Borra los ganadores. Todos los presentes vuelven a participar.',
+  },
+  {
+    id: 'asistencia',
+    titulo: 'Reiniciar asistencia',
+    texto: 'Borra las llegadas marcadas en la tablet y los ganadores. Las inscripciones y números del formulario se mantienen.',
+  },
+  {
+    id: 'todo',
+    titulo: 'Reiniciar todo',
+    texto: 'Borra inscripciones, números, llegadas y ganadores. Queda como nuevo. La lista de empleados, los excluidos y la configuración no se tocan.',
+  },
+]
+
+function Reinicio({ clave, alTerminar }) {
+  const [abierto, setAbierto] = useState(false)
+  const [opcion, setOpcion] = useState(null)
+  const [claveReinicio, setClaveReinicio] = useState('')
+  const [confirmacion, setConfirmacion] = useState('')
+  const [trabajando, setTrabajando] = useState(false)
+  const [mensaje, setMensaje] = useState(null)
+
+  const elegida = OPCIONES_REINICIO.find((o) => o.id === opcion)
+  const listo = elegida && claveReinicio.trim() && confirmacion.trim().toUpperCase() === 'BORRAR'
+
+  async function ejecutar() {
+    if (!listo) return
+    setTrabajando(true)
+    setMensaje(null)
+    try {
+      const r = await llamar('reiniciar_datos', { p_clave_panel: clave, p_clave_reinicio: claveReinicio.trim(), p_que: opcion }, 1)
+      if (!r?.ok) {
+        setMensaje({ error: true, texto: r?.error || 'No se pudo borrar.' })
+      } else {
+        setMensaje({ error: false, texto: `Listo: ${elegida.titulo.toLowerCase()} hecho. Si la pantalla del sorteo está abierta, tocá “Actualizar lista”.` })
+        setOpcion(null)
+        setClaveReinicio('')
+        setConfirmacion('')
+        alTerminar()
+      }
+    } catch {
+      setMensaje({ error: true, texto: 'No se pudo conectar. Probá de nuevo.' })
+    } finally {
+      setTrabajando(false)
+    }
+  }
+
+  return (
+    <section className="bloque herramientas">
+      <button className="boton-mini" onClick={() => setAbierto((a) => !a)}>
+        {abierto ? 'Ocultar herramientas' : 'Herramientas: borrar datos de prueba'}
+      </button>
+      {abierto && (
+        <div className="herramientas-caja">
+          <div className="opciones-reinicio">
+            {OPCIONES_REINICIO.map((o) => (
+              <button
+                key={o.id}
+                className={'opcion-reinicio' + (opcion === o.id ? ' sel' : '') + (o.id === 'todo' ? ' peligro' : '')}
+                onClick={() => {
+                  setOpcion(o.id)
+                  setMensaje(null)
+                }}
+              >
+                <span className="opcion-titulo">{o.titulo}</span>
+                <span className="opcion-texto">{o.texto}</span>
+              </button>
+            ))}
+          </div>
+          {elegida && (
+            <div className="confirmar-reinicio">
+              <p className="texto-suave chico">Esto no se puede deshacer. Si querés guardar los datos, descargá el Excel antes.</p>
+              <label className="etiqueta" htmlFor="claveReinicio">Clave de reinicio</label>
+              <input
+                id="claveReinicio"
+                className="campo"
+                type="password"
+                value={claveReinicio}
+                onChange={(e) => setClaveReinicio(e.target.value)}
+              />
+              <label className="etiqueta" htmlFor="confirmacion">Escribí BORRAR para confirmar</label>
+              <input
+                id="confirmacion"
+                className="campo"
+                autoComplete="off"
+                value={confirmacion}
+                onChange={(e) => setConfirmacion(e.target.value)}
+              />
+              <button className="boton boton-peligro" disabled={!listo || trabajando} onClick={ejecutar}>
+                {trabajando ? 'BORRANDO…' : elegida.titulo.toUpperCase()}
+              </button>
+            </div>
+          )}
+          {mensaje && <p className={mensaje.error ? 'error' : 'ok-msg'}>{mensaje.texto}</p>}
+        </div>
+      )}
+    </section>
   )
 }
