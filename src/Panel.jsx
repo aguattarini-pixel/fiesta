@@ -401,7 +401,7 @@ function Reinicio({ clave, alTerminar }) {
       if (!r?.ok) {
         setMensaje({ error: true, texto: r?.error || 'No se pudo borrar.' })
       } else {
-        setMensaje({ error: false, texto: `Listo: ${elegida.titulo.toLowerCase()} hecho. Si la pantalla del sorteo está abierta, tocá “Actualizar lista”.` })
+        setMensaje({ error: false, texto: `Listo: ${elegida.titulo.toLowerCase()} hecho. Si la pantalla del sorteo está abierta, tocá “apretá F5”.` })
         setOpcion(null)
         setClaveReinicio('')
         setConfirmacion('')
