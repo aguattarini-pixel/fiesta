@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { llamar, formatoNumero } from './supabase.js'
 import Acceso from './Acceso.jsx'
 import Nomina from './Nomina.jsx'
+
 const ACTUALIZAR_CADA = 20000 // ms
 
 export default function Panel() {
@@ -286,6 +287,20 @@ function Tablero({ clave, salir }) {
             </button>
           ))}
         </div>
+        {vista === 'comidas' && (
+          <div className="resumen-comidas">
+            {['Vegetariano/a', 'Celíaco/a'].map((p) => {
+              const todos = listas.comidas.filter((r) => r.preferencia === p)
+              return (
+                <div key={p} className="tarjeta-dato">
+                  <p className="dato-titulo">{p === 'Vegetariano/a' ? 'Vegetarianos' : 'Celíacos'}</p>
+                  <p className="dato-valor">{todos.length}</p>
+                  <p className="dato-detalle">{todos.filter((r) => r.llego).length} ya llegaron</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
         <input
           className="campo buscador"
           placeholder="Buscar por nombre, DNI, local o número"
