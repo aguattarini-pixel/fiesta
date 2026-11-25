@@ -118,7 +118,6 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
   const [actual, setActual] = useState(null) // participante sorteado
   const [mostrarGanador, setMostrarGanador] = useState(false)
   const [girando, setGirando] = useState(false)
-  const [premio, setPremio] = useState('')
   const [confeti, setConfeti] = useState(0)
 
   const disponibles = useMemo(() => lista.filter((p) => !p.gano), [lista])
@@ -148,12 +147,12 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
   const sortear = useCallback(() => {
     if (girando || !disponibles.length) return
     const elegido = disponibles[Math.floor(Math.random() * disponibles.length)]
-    setActual({ ...elegido, premio: premio.trim() })
+    setActual(elegido)
     setMostrarGanador(false)
     setNumero(formatoNumero(elegido.numero))
     setGirando(true)
     setGiro((g) => g + 1)
-  }, [girando, disponibles, premio])
+  }, [girando, disponibles])
 
   // Barra espaciadora o Enter para sortear (cómodo con un control remoto o teclado)
   useEffect(() => {
@@ -173,16 +172,15 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
     setMostrarGanador(true)
     setConfeti((c) => c + 1)
     const g = actual
-    const nueva = lista.map((p) => (p.numero === g.numero ? { ...p, gano: true, premio: g.premio } : p))
+    const nueva = lista.map((p) => (p.numero === g.numero ? { ...p, gano: true } : p))
     setLista(nueva)
     guardar(K_LISTA, nueva)
     try {
-      await llamar('sorteo_registrar_ganador', { p_clave: clave, p_numero: g.numero, p_premio: g.premio }, 2)
+      await llamar('sorteo_registrar_ganador', { p_clave: clave, p_numero: g.numero, p_premio: null }, 2)
     } catch {
-      guardar(K_PEND, [...leer(K_PEND, []), { numero: g.numero, premio: g.premio }])
+      guardar(K_PEND, [...leer(K_PEND, []), { numero: g.numero, premio: null }])
       setSinConexion(true)
     }
-    setPremio('')
   }
 
   function pantallaCompleta() {
@@ -205,19 +203,6 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
       <div className="sorteo-centro">
         <h1 className="titulo grande">FIESTA</h1>
         <p className="subtitulo">SORTEO DE FIN DE AÑO</p>
-
-        <div className="premio-zona">
-          {girando || mostrarGanador ? (
-            actual?.premio ? <p className="premio-texto">{actual.premio}</p> : <p className="premio-texto">&nbsp;</p>
-          ) : (
-            <input
-              className="campo premio-campo"
-              placeholder="Premio (opcional)"
-              value={premio}
-              onChange={(e) => setPremio(e.target.value)}
-            />
-          )}
-        </div>
 
         <Rodillos
           numero={numero}
@@ -264,7 +249,7 @@ function Tablero({ lista, setLista, clave, sinConexion, setSinConexion, recargar
           <p className="etiqueta">Ganadores</p>
           {ganadores.map((g, i) => (
             <div className="fila-ganador" key={g.numero}>
-              <span>{ganadores.length - i}. {g.nombre}{g.premio ? ` · ${g.premio}` : ''}</span>
+              <span>{ganadores.length - i}. {g.nombre}</span>
               <span className="num">{formatoNumero(g.numero)}</span>
             </div>
           ))}
