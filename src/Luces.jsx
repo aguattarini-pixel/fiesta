@@ -31,9 +31,11 @@ function crearLuces() {
       color: brillante ? '#F2C66D' : '#6E5527',
       opacidad: brillante ? 0.75 + r() * 0.25 : 0.55 + r() * 0.35,
       desenfoque: !brillante && tam > 10,
-      demora: r() * 6,
-      duracion: 3 + r() * 5,
-      titila: r() < 0.6,
+      brillo: brillante,
+      // Cada luz arranca en un punto distinto de su ciclo: así se prenden y apagan alternadas
+      demora: -r() * 8,
+      duracion: 2.5 + r() * 5,
+      titila: r() < 0.9,
     })
   }
   // Grupos (como las nubes de puntitos del flyer)
@@ -69,6 +71,7 @@ export default function Luces() {
             '--o': l.opacidad,
             opacity: l.opacidad,
             filter: l.desenfoque ? 'blur(1.5px)' : undefined,
+            boxShadow: l.brillo ? `0 0 ${l.tam * 1.2}px ${l.tam * 0.35}px rgba(242, 198, 109, 0.35)` : undefined,
             animationDelay: `${l.demora}s`,
             animationDuration: `${l.duracion}s`,
           }}
