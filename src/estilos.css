@@ -214,4 +214,4 @@ hr { border: none; border-top: 1px solid var(--blanco); margin: 0 0 8px; }
 #root > *:not(.luces) { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { .luz.titila { animation: none; } }
 .flecha { color: var(--dorado); font-size: 18px; transition: transform 0.2s; }
-.flecha.abierta { transform: rotate(180deg); }
+.flecha.abierta { transform: rotate(180deg); } }
