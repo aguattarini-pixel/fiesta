@@ -47,6 +47,7 @@ function Tablero({ clave, salir }) {
   const [vista, setVista] = useState('asistieron')
   const [buscar, setBuscar] = useState('')
   const [bajando, setBajando] = useState(false)
+  const [verLocales, setVerLocales] = useState(false)
 
   const cargar = useCallback(async () => {
     try {
@@ -257,39 +258,6 @@ function Tablero({ clave, salir }) {
       </div>
 
       <section className="bloque">
-        <h2 className="bloque-titulo">Por local</h2>
-        <div className="tabla-scroll">
-          <table className="tabla">
-            <thead>
-              <tr>
-                <th>Local / Área</th>
-                <th>Confirmaron</th>
-                <th>Asistieron</th>
-                <th>No asistieron</th>
-                <th>%</th>
-                <th>Sin anotarse</th>
-              </tr>
-            </thead>
-            <tbody>
-              {porLocal.map((x) => (
-                <tr key={x.area}>
-                  <td>{x.area}</td>
-                  <td>{x.confirmaron}</td>
-                  <td className="dorado">{x.asistieron}</td>
-                  <td>{x.noAsistieron}</td>
-                  <td>
-                    <div className="barra"><span style={{ width: pct(x.asistieron, x.confirmaron) === '–' ? 0 : pct(x.asistieron, x.confirmaron) }} /></div>
-                    {pct(x.asistieron, x.confirmaron)}
-                  </td>
-                  <td>{x.sinAnotarse || ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="bloque">
         <div className="pestanas">
           {pestanas.map(([k, txt]) => (
             <button key={k} className={'pestana' + (vista === k ? ' activa' : '')} onClick={() => setVista(k)}>
@@ -349,6 +317,44 @@ function Tablero({ clave, salir }) {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="bloque">
+        <button className="desplegable" onClick={() => setVerLocales((v) => !v)}>
+          <span className="bloque-titulo">Por local / área</span>
+          <span className={'flecha' + (verLocales ? ' abierta' : '')}>▾</span>
+        </button>
+        {verLocales && (
+        <div className="tabla-scroll">
+          <table className="tabla">
+            <thead>
+              <tr>
+                <th>Local / Área</th>
+                <th>Confirmaron</th>
+                <th>Asistieron</th>
+                <th>No asistieron</th>
+                <th>%</th>
+                <th>Sin anotarse</th>
+              </tr>
+            </thead>
+            <tbody>
+              {porLocal.map((x) => (
+                <tr key={x.area}>
+                  <td>{x.area}</td>
+                  <td>{x.confirmaron}</td>
+                  <td className="dorado">{x.asistieron}</td>
+                  <td>{x.noAsistieron}</td>
+                  <td>
+                    <div className="barra"><span style={{ width: pct(x.asistieron, x.confirmaron) === '–' ? 0 : pct(x.asistieron, x.confirmaron) }} /></div>
+                    {pct(x.asistieron, x.confirmaron)}
+                  </td>
+                  <td>{x.sinAnotarse || ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        )}
       </section>
 
       <Reinicio clave={clave} alTerminar={cargar} />
