@@ -320,9 +320,11 @@ function Tablero({ clave, salir }) {
       </section>
 
       <section className="bloque">
-        <button className="desplegable" onClick={() => setVerLocales((v) => !v)}>
-          <span className="bloque-titulo">Por local / área</span>
-          <span className={'flecha' + (verLocales ? ' abierta' : '')}>▾</span>
+                <div className="pestanas">
+          <button className={'pestana' + (verLocales ? ' activa' : '')} onClick={() => setVerLocales((v) => !v)}>
+            Por local / área {verLocales ? '▴' : '▾'}
+          </button>
+        </div>
         </button>
         {verLocales && (
         <div className="tabla-scroll">
