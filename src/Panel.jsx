@@ -45,7 +45,9 @@ function Tablero({ clave, salir }) {
   const [datos, setDatos] = useState(null)
   const [actualizado, setActualizado] = useState(null)
   const [error, setError] = useState('')
-  const [vista, setVista] = useState('asistieron')
+  const [vista, setVista] = useState('inscriptos')
+  const [filtroLocal, setFiltroLocal] = useState('')
+  const [filtroResp, setFiltroResp] = useState('')
   const [buscar, setBuscar] = useState('')
   const [bajando, setBajando] = useState(false)
   const [verLocales, setVerLocales] = useState(false)
@@ -103,6 +105,10 @@ function Tablero({ clave, salir }) {
   const listas = useMemo(() => {
     if (!datos) return {}
     return {
+      // En el orden en que se fueron anotando en el formulario
+      inscriptos: datos
+        .filter((r) => r.respondio && r.origen !== 'recepcion')
+        .sort((a, b) => (a.inscripto || '').localeCompare(b.inscripto || '')),
       asistieron: datos.filter((r) => r.llego).sort((a, b) => (b.llegada || '').localeCompare(a.llegada || '')),
       noAsistieron: datos.filter((r) => r.confirmo && !r.llego),
       sinResponder: datos.filter((r) => r.sinResponder || r.dijoNo),
@@ -114,11 +120,16 @@ function Tablero({ clave, salir }) {
   }, [datos])
 
   const filas = useMemo(() => {
-    const l = listas[vista] || []
+    let l = listas[vista] || []
+    if (filtroLocal) l = l.filter((r) => r.area === filtroLocal)
+    if (filtroResp === 'confirmo') l = l.filter((r) => r.asiste)
+    if (filtroResp === 'no') l = l.filter((r) => r.dijoNo)
+    if (filtroResp === 'llego') l = l.filter((r) => r.llego)
+    if (filtroResp === 'nollego') l = l.filter((r) => r.asiste && !r.llego)
     const q = sinTildes(buscar.trim())
     if (!q) return l
     return l.filter((r) => sinTildes(`${r.nombre} ${r.dni} ${r.area} ${r.numero ?? ''}`).includes(q))
-  }, [listas, vista, buscar])
+  }, [listas, vista, buscar, filtroLocal, filtroResp])
 
   async function deshacer(r) {
     if (!window.confirm(`¿Quitar la llegada de ${r.nombre}? Deja de participar del sorteo.`)) return
@@ -191,6 +202,11 @@ function Tablero({ clave, salir }) {
         ),
         'Por local'
       )
+      XLSX.utils.book_append_sheet(
+        wb,
+        hoja(listas.inscriptos.map((r, i) => ({ '#': i + 1, ...persona(r) })), [6, ...anchosPersona]),
+        'Inscriptos'
+      )
       XLSX.utils.book_append_sheet(wb, hoja(listas.asistieron.map(persona), anchosPersona), 'Asistieron')
       XLSX.utils.book_append_sheet(wb, hoja(listas.noAsistieron.map(persona), anchosPersona), 'No asistieron')
       XLSX.utils.book_append_sheet(
@@ -229,6 +245,7 @@ function Tablero({ clave, salir }) {
   ]
 
   const pestanas = [
+    ['inscriptos', `Inscriptos (${listas.inscriptos.length})`],
     ['asistieron', `Asistieron (${listas.asistieron.length})`],
     ['noAsistieron', `No asistieron (${listas.noAsistieron.length})`],
     ['sinResponder', `No viene / No confirmaron (${listas.sinResponder.length})`],
@@ -238,9 +255,9 @@ function Tablero({ clave, salir }) {
     ['alergias', `Alergias (${listas.alergias.length})`],
   ]
 
-  const conComida = ['asistieron', 'noAsistieron', 'comidas'].includes(vista)
-  const conAlergia = ['asistieron', 'noAsistieron', 'alergias'].includes(vista)
-  const conEstado = ['sinResponder', 'excluidos', 'comidas', 'alergias'].includes(vista)
+  const conComida = ['inscriptos', 'asistieron', 'noAsistieron', 'comidas'].includes(vista)
+  const conAlergia = ['inscriptos', 'asistieron', 'noAsistieron', 'alergias'].includes(vista)
+  const conEstado = ['inscriptos', 'sinResponder', 'excluidos', 'comidas', 'alergias'].includes(vista)
   const estado = (r) =>
     r.llego ? 'Llegó' : r.confirmo ? 'Confirmó' : r.dijoNo ? 'No asiste' : 'Sin responder'
 
@@ -307,16 +324,46 @@ function Tablero({ clave, salir }) {
           value={buscar}
           onChange={(e) => setBuscar(e.target.value)}
         />
+        <div className="filtros">
+          <select className="campo" value={filtroLocal} onChange={(e) => setFiltroLocal(e.target.value)}>
+            <option value="">Todos los locales / áreas</option>
+            {porLocal.map((x) => (
+              <option key={x.area} value={x.area}>{x.area}</option>
+            ))}
+          </select>
+          <select className="campo" value={filtroResp} onChange={(e) => setFiltroResp(e.target.value)}>
+            <option value="">Todas las respuestas</option>
+            <option value="confirmo">Confirmaron que van</option>
+            <option value="no">Dijeron que no van</option>
+            <option value="llego">Ya llegaron</option>
+            <option value="nollego">Confirmaron y no llegaron</option>
+          </select>
+          {(filtroLocal || filtroResp || buscar) && (
+            <button
+              className="boton-mini"
+              onClick={() => {
+                setFiltroLocal('')
+                setFiltroResp('')
+                setBuscar('')
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+          <span className="texto-suave chico">{filas.length} personas</span>
+        </div>
         <div className="tabla-scroll">
           <table className="tabla">
             <thead>
               <tr>
                 {vista === 'ganadores' && <th>Orden</th>}
+                {vista === 'inscriptos' && <th>#</th>}
                 <th>Nombre</th>
                 <th>DNI</th>
                 <th>Local / Área</th>
                 <th>N°</th>
                 {vista === 'asistieron' && <th>Llegada</th>}
+                {vista === 'inscriptos' && <th>Se anotó</th>}
                 {conComida && <th>Comida</th>}
                 {conAlergia && <th>Alergia</th>}
                 {conEstado && <th>Estado</th>}
@@ -327,6 +374,7 @@ function Tablero({ clave, salir }) {
               {filas.map((r) => (
                 <tr key={r.dni}>
                   {vista === 'ganadores' && <td className="dorado">{listas.ganadores.indexOf(r) + 1}°</td>}
+                  {vista === 'inscriptos' && <td className="dorado">{listas.inscriptos.indexOf(r) + 1}</td>}
                   <td>
                     {r.nombre}
                     {r.excluido && <span className="etiqueta-chica">excluido</span>}
@@ -337,6 +385,7 @@ function Tablero({ clave, salir }) {
                   <td>{r.area}</td>
                   <td className="dorado">{r.numero ? formatoNumero(r.numero) : ''}</td>
                   {vista === 'asistieron' && <td>{hora(r.llegada)}</td>}
+                  {vista === 'inscriptos' && <td>{fechaHora(r.inscripto)}</td>}
                   {conComida && <td>{r.preferencia || ''}</td>}
                   {conAlergia && <td>{r.alergia || ''}</td>}
                   {conEstado && <td>{estado(r)}</td>}
